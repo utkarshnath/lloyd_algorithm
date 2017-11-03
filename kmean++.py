@@ -69,8 +69,8 @@ def kmean(center1,center2,clusterCenters,iteration):
             clusterCenters[j] = np.mean(clusters["cluster" + str(j)],axis=0)
         err = error(center1,center2,clusterCenters)
         iteration = iteration+1
-        print "err ",err
-        print "iteration ",iteration
+        # print "err ",err
+        # print "iteration ",iteration
     return err,iteration
 
 def error(center1,center2,clusterCenters):
