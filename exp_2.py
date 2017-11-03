@@ -10,7 +10,7 @@ dim = 1000
 clusterCenters = np.zeros((2, dim))
 clusters = {}
 data = []
-ratio = [3,5,10]
+ratio = [1,2,3,5,10]
 
 # center is the actual center of the hypersphere
 def circle(center,circleNumber,N):
@@ -50,9 +50,10 @@ def kmean(center1,center2,clusterCenters,iteration,N1,N2):
     for i in xrange(0,2):
         clusters["cluster" + str(i)] = []
     err = error(center1,center2,clusterCenters)
-    print "err ",err
-    print "iteration ",iteration
-    while err > .675:
+    # print "err ",err
+    # print "iteration ",iteration
+    prev_err = 0
+    while abs(prev_err-err) > .001:
         no_of_correct_points = 0
         for j in xrange(0,N1+N2):
             min = 100000;
@@ -73,11 +74,12 @@ def kmean(center1,center2,clusterCenters,iteration,N1,N2):
             clusters["cluster" + str(minIndex)].append(data[:,j])
         for j in xrange(0,2):
             clusterCenters[j] = np.mean(clusters["cluster" + str(j)],axis=0)
+        prev_err = err
         err = error(center1,center2,clusterCenters)
         iteration = iteration+1
-        print "err ",err
-        print "iteration ",iteration
-        print "correct points", no_of_correct_points
+        # print "err ",err
+        # print "iteration ",iteration
+        # print "correct points", no_of_correct_points
     return err,iteration,no_of_correct_points
 
 def error(center1,center2,clusterCenters):
@@ -104,7 +106,7 @@ for i in xrange(0,len(ratio)):
             print "Initial Center2 ------->  ",2+i/10.0
             print "err ",err
             print "iteration ",iteration
-            print "percentage of correct points ",no_of_correct_points
+            print "percentage of correct points ",no_of_correct_points/((number_of_points_circle1+number_of_points_circle2)*1.0)
             print "-------------------------------------------------------------------------------------->"
 
         for i in xrange(3,6):
