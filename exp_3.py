@@ -1,11 +1,12 @@
 import random
 from random import randint
 import math
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial import distance
 
 
-
+N = 1000
 dim = 1000
 clusterCenters = np.zeros((2, dim))
 clusters = {}
@@ -13,7 +14,7 @@ data = []
 ratio = [1,2,3,5,10]
 
 # center is the actual center of the hypersphere
-def circle(center,circleNumber,N):
+def circle(center,circleNumber,currRadius):
     global data,clusterCenters
     norm = np.random.normal
     normal_deviates = norm(size=(dim, N))
@@ -27,25 +28,26 @@ def circle(center,circleNumber,N):
         arr = points[i]
         xmax = arr.flat[abs(arr).argmax()]
         for j in xrange(0,N):
-            points[i][j] = points[i][j]/abs(xmax)
+            points[i][j] = (points[i][j] * currRadius)/abs(xmax)
     for j in xrange(0,N):
         points[0][j]+=center
     clusterCenter = np.full((dim),0)
-    clusterCenter[0] = center+1
+    clusterCenter[0] = center+currRadius
     if(circleNumber==0):
         data = points
         clusterCenters[0] = clusterCenter
     else:
         data = np.concatenate((data, points), axis=1)
         clusterCenters[1] = clusterCenter
-
+    plt.scatter(points[0],points[1])
+    plt.axes().set_aspect('equal', 'datalim')
 
 def printClusters():
     for i in xrange(0,dim):
-        print clusterCenters[0][i],"  :::::::::   ",clusterCenters[1][i]
+        print clusterCenters[0][i],"     ",clusterCenters[1][i]
     print "---------------------------------------"
 
-def kmean(center1,center2,clusterCenters,iteration,N1,N2):
+def kmean(center1,center2,clusterCenters,iteration):
     global data
     for i in xrange(0,2):
         clusters["cluster" + str(i)] = []
@@ -55,7 +57,7 @@ def kmean(center1,center2,clusterCenters,iteration,N1,N2):
     prev_err = 0
     while abs(prev_err-err) > .001:
         no_of_correct_points = 0
-        for j in xrange(0,N1+N2):
+        for j in xrange(0,2*N):
             min = 100000;
             minIndex = 0;
             for k in xrange(0,2):
@@ -65,7 +67,7 @@ def kmean(center1,center2,clusterCenters,iteration,N1,N2):
                 if(dist<min):
                     min = dist
                     minIndex = k
-            if (j<N1):
+            if (j<N):
                 if minIndex==0:
                     no_of_correct_points+=1
             else:
@@ -79,7 +81,6 @@ def kmean(center1,center2,clusterCenters,iteration,N1,N2):
         iteration = iteration+1
         # print "err ",err
         # print "iteration ",iteration
-        # print "correct points", no_of_correct_points
     return err,iteration,no_of_correct_points
 
 def error(center1,center2,clusterCenters):
@@ -92,31 +93,31 @@ def error(center1,center2,clusterCenters):
     return dist2+dist1
 
 for j in xrange(0,len(ratio)):
-        number_of_points_circle1 = int(round((1000.0/(ratio[j]+1))*1))
-        number_of_points_circle2 = int(round((1000.0/(ratio[j]+1))*ratio[j]))
-        print "******************************************"
-        print "Current Ratio is 1 :",ratio[j]
-        print "******************************************"
-        for i in xrange(0,20):
-            circle(0,0,number_of_points_circle1)
-            circle(2+i/10.0,1,number_of_points_circle2)
-            err,iteration,no_of_correct_points = kmean(0,2+i/10.0,clusterCenters,0,number_of_points_circle1,number_of_points_circle2)
-            print "-------------------------------------------------------------------------------------->"
-            print "Initial Center1 ------->  ",0
-            print "Initial Center2 ------->  ",2+i/10.0
-            print "err ",err
-            print "iteration ",iteration
-            print "percentage of correct points ",no_of_correct_points/((number_of_points_circle1+number_of_points_circle2)*1.0)
-            print "-------------------------------------------------------------------------------------->"
+    print "******************************************"
+    print "Current Ratio of Radius is 1 :",ratio[j]
+    print "******************************************"
+    for i in xrange(0,20):
+        circle(0,0,1)
+        circle(ratio[j]+1+i/10.0,1,ratio[j])
+        err,iteration,no_of_correct_points = kmean(0,2+i/10.0,clusterCenters,0)
+        print "-------------------------------------------------------------------------------------->"
+        print "Initial Center1 ------->  ",0
+        print "Initial Center2 ------->  ",ratio[j]+1+i/10.0
+        print "err ",err
+        print "iteration ",iteration
+        print "percentage of correct points ",no_of_correct_points/(2.0*N)
+        print "-------------------------------------------------------------------------------------->"
 
-        for i in xrange(3,6):
-            circle(0,0,number_of_points_circle1)
-            circle(2**i,1,number_of_points_circle2)
-            err,iteration,no_of_correct_points = kmean(0,2**i,clusterCenters,0,number_of_points_circle1,number_of_points_circle2)
-            print "-------------------------------------------------------------------------------------->"
-            print "Initial Center1 ------->  ",0
-            print "Initial Center2 ------->  ",2**i
-            print "err ",err
-            print "iteration ",iteration
-            print "percentage of correct points ",no_of_correct_points/((number_of_points_circle1+number_of_points_circle2)*1.0)
-            print "-----------------------------"
+    # for i in xrange(3,6):
+    #     circle(0,0,1)
+    #     circle((ratio[j]+1),1,ratio[j])
+    #     plt.plot(clusterCenters[0][0],clusterCenters[0][1],'ro')
+    #     plt.plot(clusterCenters[1][0],clusterCenters[1][1],'ro')
+    #     plt.show()
+    #     err,iteration = kmean(0,2**i,clusterCenters,0)
+    #     print "-------------------------------------------------------------------------------------->"
+    #     print "Initial Center1 ------->  ",0
+    #     print "Initial Center2 ------->  ",2**i
+    #     print "err ",err
+    #     print "iteration ",iteration
+    #     print "-------------------------------------------------------------------------------------->"
